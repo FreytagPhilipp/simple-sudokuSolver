@@ -195,38 +195,134 @@ def minimzeKNF(knf : list, progressMessages : bool = False) -> list:
     
     return knf
 
+"""
 
-feld = list()
-for n1 in [True, False]:
-    for n2 in [True, False]:
-        for n3 in [True, False]:
-            for n4 in [True, False]:
-                for n5 in [True, False]:
-                    for n6 in [True, False]:
-                        for n7 in [True, False]:
-                            for n8 in [True, False]:
-                                for n9 in [True, False]:
-                                    feld.append([(n1, "a"), (n2, "b"), (n3, "c"), (n4, "d"), (n5, "e"), (n6, "f"), (n7, "g"), (n8, "h"), (n9, "i")])
-feld.remove([(False, "a"), (True, "b"), (True, "c"), (True, "d"), (True, "e"), (True, "f"), (True, "g"), (True, "h"), (True, "i")])
-feld.remove([(True, "a"), (False, "b"), (True, "c"), (True, "d"), (True, "e"), (True, "f"), (True, "g"), (True, "h"), (True, "i")])
-feld.remove([(True, "a"), (True, "b"), (False, "c"), (True, "d"), (True, "e"), (True, "f"), (True, "g"), (True, "h"), (True, "i")])
-feld.remove([(True, "a"), (True, "b"), (True, "c"), (False, "d"), (True, "e"), (True, "f"), (True, "g"), (True, "h"), (True, "i")])
-feld.remove([(True, "a"), (True, "b"), (True, "c"), (True, "d"), (False, "e"), (True, "f"), (True, "g"), (True, "h"), (True, "i")])
-feld.remove([(True, "a"), (True, "b"), (True, "c"), (True, "d"), (True, "e"), (False, "f"), (True, "g"), (True, "h"), (True, "i")])
-feld.remove([(True, "a"), (True, "b"), (True, "c"), (True, "d"), (True, "e"), (True, "f"), (False, "g"), (True, "h"), (True, "i")])
-feld.remove([(True, "a"), (True, "b"), (True, "c"), (True, "d"), (True, "e"), (True, "f"), (True, "g"), (False, "h"), (True, "i")])
-feld.remove([(True, "a"), (True, "b"), (True, "c"), (True, "d"), (True, "e"), (True, "f"), (True, "g"), (True, "h"), (False, "i")])
+def createFeld() -> list:
+    #return []
+    
+    feld = list()
+    for n1 in [True, False]:
+        for n2 in [True, False]:
+            for n3 in [True, False]:
+                for n4 in [True, False]:
+                    for n5 in [True, False]:
+                        for n6 in [True, False]:
+                            for n7 in [True, False]:
+                                for n8 in [True, False]:
+                                    for n9 in [True, False]:
+                                        feld.append([(n1, "a"), (n2, "b"), (n3, "c"), (n4, "d"), (n5, "e"), (n6, "f"), (n7, "g"), (n8, "h"), (n9, "i")])
+    feld.remove([(False, "a"), (True, "b"), (True, "c"), (True, "d"), (True, "e"), (True, "f"), (True, "g"), (True, "h"), (True, "i")])
+    feld.remove([(True, "a"), (False, "b"), (True, "c"), (True, "d"), (True, "e"), (True, "f"), (True, "g"), (True, "h"), (True, "i")])
+    feld.remove([(True, "a"), (True, "b"), (False, "c"), (True, "d"), (True, "e"), (True, "f"), (True, "g"), (True, "h"), (True, "i")])
+    feld.remove([(True, "a"), (True, "b"), (True, "c"), (False, "d"), (True, "e"), (True, "f"), (True, "g"), (True, "h"), (True, "i")])
+    feld.remove([(True, "a"), (True, "b"), (True, "c"), (True, "d"), (False, "e"), (True, "f"), (True, "g"), (True, "h"), (True, "i")])
+    feld.remove([(True, "a"), (True, "b"), (True, "c"), (True, "d"), (True, "e"), (False, "f"), (True, "g"), (True, "h"), (True, "i")])
+    feld.remove([(True, "a"), (True, "b"), (True, "c"), (True, "d"), (True, "e"), (True, "f"), (False, "g"), (True, "h"), (True, "i")])
+    feld.remove([(True, "a"), (True, "b"), (True, "c"), (True, "d"), (True, "e"), (True, "f"), (True, "g"), (False, "h"), (True, "i")])
+    feld.remove([(True, "a"), (True, "b"), (True, "c"), (True, "d"), (True, "e"), (True, "f"), (True, "g"), (True, "h"), (False, "i")])
+    
+    feld = minimzeKNF(feld, progressMessages=True)
+    
+    return feld.copy()
 
-tmp = "KKNF: [\n"
-for clause in feld:
-    tmp += "     " + clause.__str__() + ", \n"
-tmp += "]"
-#print(tmp)
+def createFill9() -> list:
+    feld = list()
+    i = 1
+    for n1 in [True, False]:
+        for n2 in [True, False]:
+            for n3 in [True, False]:
+                for n4 in [True, False]:
+                    for n5 in [True, False]:
+                        for n6 in [True, False]:
+                            for n7 in [True, False]:
+                                for n8 in [True, False]:
+                                    for n9 in [True, False]:
+                                        feld.append([(n1, "a-" + str(i)), (n2, "b-" + str(i)), (n3, "c-" + str(i)), (n4, "d-" + str(i)), (n5, "e-" + str(i)), (n6, "f-" + str(i)), (n7, "g-" + str(i)), (n8, "h-" + str(i)), (n9, "i-" + str(i))])
+    feld.remove([(False, "a-" + str(i)), (True, "b-" + str(i)), (True, "c-" + str(i)), (True, "d-" + str(i)), (True, "e-" + str(i)), (True, "f-" + str(i)), (True, "g-" + str(i)), (True, "h-" + str(i)), (True, "i-" + str(i))])
+    feld.remove([(True, "a-" + str(i)), (False, "b-" + str(i)), (True, "c-" + str(i)), (True, "d-" + str(i)), (True, "e-" + str(i)), (True, "f-" + str(i)), (True, "g-" + str(i)), (True, "h-" + str(i)), (True, "i-" + str(i))])
+    feld.remove([(True, "a-" + str(i)), (True, "b-" + str(i)), (False, "c-" + str(i)), (True, "d-" + str(i)), (True, "e-" + str(i)), (True, "f-" + str(i)), (True, "g-" + str(i)), (True, "h-" + str(i)), (True, "i-" + str(i))])
+    feld.remove([(True, "a-" + str(i)), (True, "b-" + str(i)), (True, "c-" + str(i)), (False, "d-" + str(i)), (True, "e-" + str(i)), (True, "f-" + str(i)), (True, "g-" + str(i)), (True, "h-" + str(i)), (True, "i-" + str(i))])
+    feld.remove([(True, "a-" + str(i)), (True, "b-" + str(i)), (True, "c-" + str(i)), (True, "d-" + str(i)), (False, "e-" + str(i)), (True, "f-" + str(i)), (True, "g-" + str(i)), (True, "h-" + str(i)), (True, "i-" + str(i))])
+    feld.remove([(True, "a-" + str(i)), (True, "b-" + str(i)), (True, "c-" + str(i)), (True, "d-" + str(i)), (True, "e-" + str(i)), (False, "f-" + str(i)), (True, "g-" + str(i)), (True, "h-" + str(i)), (True, "i-" + str(i))])
+    feld.remove([(True, "a-" + str(i)), (True, "b-" + str(i)), (True, "c-" + str(i)), (True, "d-" + str(i)), (True, "e-" + str(i)), (True, "f-" + str(i)), (False, "g-" + str(i)), (True, "h-" + str(i)), (True, "i-" + str(i))])
+    feld.remove([(True, "a-" + str(i)), (True, "b-" + str(i)), (True, "c-" + str(i)), (True, "d-" + str(i)), (True, "e-" + str(i)), (True, "f-" + str(i)), (True, "g-" + str(i)), (False, "h-" + str(i)), (True, "i-" + str(i))])
+    feld.remove([(True, "a-" + str(i)), (True, "b-" + str(i)), (True, "c-" + str(i)), (True, "d-" + str(i)), (True, "e-" + str(i)), (True, "f-" + str(i)), (True, "g-" + str(i)), (True, "h-" + str(i)), (False, "i-" + str(i))])
+    feld = minimzeKNF(feld, progressMessages=True)
+    
+    return feld.copy()
 
-#feld = minimzeKNF(feld, progressMessages=True)
 
-tmp = "minimized KNF: [\n"
-for clause in feld:
-    tmp += "     " + clause.__str__() + ", \n"
-tmp += "]"
-#print(tmp)
+import tmp
+from tmp import *
+kl = minimzeKNF(sudokuGeneral, progressMessages=True)
+strTmp = "sudokuGeneral = [\n"
+for clause in kl[:-1]:
+    strTmp = strTmp + "    " + clause.__str__() + ",\n"
+strTmp = strTmp + kl[-1].__str__() + "\n]"
+
+with open('sudokuGeneralKNF.txt', 'w') as file:
+    file.write(strTmp)
+
+
+
+
+
+lastContent = "sudokuGeneral = [\n"
+with open('sudokuGeneralKNF.txt', 'w') as file:
+    tmpStr = ""
+    feld = createFeld()
+    for i in range(0,9):
+        for j in range(0,9):
+            for clause in feld.copy():
+                tmpStr = tmpStr + "    " + clause.__str__() + ", \n"
+            for exchange in [('a', '-1'), ('b', '-2'), ('c', '-3'), ('d', '-4'), ('e', '-5'), ('f', '-6'), ('g', '-7'), ('h', '-8'), ('i', '-9')]:
+                tmpStr = tmpStr.replace("'" + exchange[0] + "'", "'" + str(i) + str(j) + exchange[1] + "'")
+    lastContent = lastContent + tmpStr
+    
+    feld = createFill9()
+    tmpStr = ""
+    for n in range(1, 10):
+        for i in range(0,9):
+            for clause in feld.copy():
+                tmpStr = tmpStr + "    " + clause.__str__() + ", \n"
+            for exchange in [('a', '0'), ('b', '1'), ('c', '2'), ('d', '3'), ('e', '4'), ('f', '5'), ('g', '6'), ('h', '7'), ('i', '8')]:
+                tmpStr = tmpStr.replace("'" + exchange[0] + "-1'", "'" + str(i) + exchange[1] + "-" + str(n) + "'")
+    lastContent = lastContent + tmpStr
+    
+    tmpStr = ""
+    for n in range(1, 10):
+        for i in range(0,9):
+            for clause in feld.copy():
+                tmpStr = tmpStr + "    " + clause.__str__() + ", \n"
+            for exchange in [('a', '0'), ('b', '1'), ('c', '2'), ('d', '3'), ('e', '4'), ('f', '5'), ('g', '6'), ('h', '7'), ('i', '8')]:
+                tmpStr = tmpStr.replace("'" + exchange[0] + "-1'", "'" + exchange[1] + str(i) + "-" + str(n) + "'")
+    lastContent = lastContent + tmpStr
+    
+    kasten = [
+        [('a', '00'), ('b', '01'), ('c', '02'), ('d', '10'), ('e', '11'), ('f', '12'), ('g', '20'), ('h', '21'), ('i', '22')],
+        [('a', '03'), ('b', '04'), ('c', '05'), ('d', '13'), ('e', '14'), ('f', '15'), ('g', '23'), ('h', '24'), ('i', '25')],
+        [('a', '06'), ('b', '07'), ('c', '08'), ('d', '16'), ('e', '17'), ('f', '18'), ('g', '26'), ('h', '27'), ('i', '28')],
+        
+        [('a', '30'), ('b', '31'), ('c', '32'), ('d', '40'), ('e', '41'), ('f', '42'), ('g', '50'), ('h', '51'), ('i', '52')],
+        [('a', '33'), ('b', '34'), ('c', '35'), ('d', '43'), ('e', '44'), ('f', '45'), ('g', '53'), ('h', '54'), ('i', '55')],
+        [('a', '36'), ('b', '37'), ('c', '38'), ('d', '46'), ('e', '47'), ('f', '48'), ('g', '56'), ('h', '57'), ('i', '58')],
+        
+        [('a', '60'), ('b', '61'), ('c', '62'), ('d', '70'), ('e', '71'), ('f', '72'), ('g', '80'), ('h', '81'), ('i', '82')],
+        [('a', '63'), ('b', '64'), ('c', '65'), ('d', '73'), ('e', '74'), ('f', '75'), ('g', '83'), ('h', '84'), ('i', '85')],
+        [('a', '66'), ('b', '67'), ('c', '68'), ('d', '76'), ('e', '77'), ('f', '78'), ('g', '86'), ('h', '87'), ('i', '88')]
+    ]
+    #kasten 1
+    tmpStr = ""
+    for kast in kasten:
+        for n in range(1, 10):
+            for clause in feld.copy():
+                tmpStr = tmpStr + "    " + clause.__str__() + ", \n"
+            for exchange in kast:
+                tmpStr = tmpStr.replace("'" + exchange[0] + "-1'", "'" + exchange[1] + "-" + str(n) + "'")
+        lastContent = lastContent + tmpStr
+    
+    file.write(lastContent)
+"""
+
+
+
