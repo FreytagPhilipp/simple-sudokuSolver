@@ -1,3 +1,4 @@
+#import is optional but speeds up sudokuSolver
 try:
     import sudokuGeneralCnf
     from sudokuGeneralCnf import *
@@ -5,8 +6,216 @@ except:
     pass
 
 
-# a smaller knf, which can be used to construct the full knf for the solver (is needed when sudokuGeneralCnf-Import failes)
-__generalKNF__ = [
+def solveSudoku(sudoku : list) -> list:
+    """solve sudoku with tree-like testing of possible states.
+
+    Args:
+        sudoku list(list(int)) : is a 2-dimensional array containing 9 lists with 9 integers, representing each sudoku-field. If an int is 0, field is not set 
+
+    Returns:
+        list(list(int)) : returns a solved sudoku game or an empty list (if its not solveable)
+    """
+
+    def isInSolvedState(cnf : list) -> bool:
+        """checks if sudoku-cnf is solved
+
+        Args:
+            cnf list(list(tuple(bool, str))) : is given cnf
+
+        Returns:
+            bool : is True if in solved form or False if its not in solved form
+        """
+
+        if len(cnf) == 729: #is number of all unitclauses possible in a solved state
+            #check if all of the contained clauses are unit-clauses
+            for cl in cnf:
+                if len(cl) != 1:
+                    return False
+
+            #check if each field is only set and only once
+            onlyOneOfEachFieldSet = False
+            for row in range(0,9):
+                for col in range(0,9):
+                    for n in range(1, 10):
+                        if [(False, str(row) + str(col) + "-" + str(n))] not in cnf and [(True, str(row) + str(col) + "-" + str(n))] not in cnf:
+                            return False
+                        elif [(True, str(row) + str(col) + "-" + str(n))] in cnf and onlyOneOfEachFieldSet:
+                            return False
+                        elif [(True, str(row) + str(col) + "-" + str(n))] in cnf and not onlyOneOfEachFieldSet:
+                            onlyOneOfEachFieldSet = True
+                    if not onlyOneOfEachFieldSet:
+                        return False
+                    onlyOneOfEachFieldSet = False
+            
+            #since it derived from general sudoku-cnf, it musat be a solved sudoku
+            return True 
+        else:
+            return False
+
+    def getUnallocatetField(cnf : list) -> tuple:
+        """gets the unallocated field with the least possible numbers remaining
+
+        Args:
+            cnf list(list(tuple(bool, str))) : given cnf
+
+        Results:
+            tuple(int, int, list(int)) : returns tuple containing a row-index, a collum-index and a list of possible allocations or None if none was found
+        """
+        tmpResult = None
+
+        for row in range(0,9):
+            for col in range(0,9):
+                if [(True, str(row) + str(col) + "-1")] not in cnf and [(True, str(row) + str(col) + "-2")] not in cnf and [(True, str(row) + str(col) + "-3")] not in cnf and [(True, str(row) + str(col) + "-4")] not in cnf and [(True, str(row) + str(col) + "-5")] not in cnf and [(True, str(row) + str(col) + "-6")] not in cnf and [(True, str(row) + str(col) + "-7")] not in cnf and [(True, str(row) + str(col) + "-8")] not in cnf and [(True, str(row) + str(col) + "-9")] not in cnf:
+                    tmpList = list()
+                    for n in range(1, 10):
+                        if [(False, str(row) + str(col) + "-" + str(n))] not in cnf and n not in tmpList:
+                            tmpList.append(n)
+                    if len(tmpList) == 2:
+                        return (row, col, tmpList)
+                    elif tmpResult is not None and len(tmpList) < len(tmpResult[2]):
+                        tmpResult = (row, col, tmpList)
+                    elif tmpResult is None:
+                        tmpResult = (row, col, tmpList)
+
+        return tmpResult
+
+    #get cnf defining a sudoku-game or construct it
+    try:
+        cnf = sudokuGeneral.copy()
+    except:
+        cnf = __createSudokuCnf__()
+        
+    
+    #read in given sudoku
+    setOfUnitClauses = set()
+    for row in range(0,9):
+        for col in range(0,9):
+            if sudoku[row][col] != 0:
+                setOfUnitClauses.update({(True, str(row) + str(col) + "-" + str(sudoku[row][col]))})
+    cnf = __unitResolutionForSet__(cnf, setOfUnitClauses)
+                
+    #contains still untried clauses and old cnf as tuples
+    stackAddableUnitClauses = list()
+
+    while not isInSolvedState(cnf.copy()):
+        if [] in cnf and len(stackAddableUnitClauses) == 0:
+            #sudoku unsolveable
+            return []
+        elif [] in cnf and len(stackAddableUnitClauses) > 0:
+            #check other configuration -> you made a wrong assumption
+
+            newClause = stackAddableUnitClauses.pop()
+            cnf = __unitResolutionForSet__(newClause[1], {newClause[0]})
+        else:
+            #test further with additional allocation of a field
+            
+            #get good non-set field
+            tmp = getUnallocatetField(cnf)
+            #add to stack and try out allocations
+            for unit in tmp[2][1:]:
+                stackAddableUnitClauses.append(((True, str(tmp[0]) + str(tmp[1]) + "-" + str(unit)), cnf.copy()))
+            cnf = __unitResolutionForSet__(cnf, {(True, str(tmp[0]) + str(tmp[1]) + "-" + str(tmp[2][0]))})
+
+
+    #convert unit-clauses into list-structure and return it
+    result = [
+        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
+        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
+        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
+
+        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
+        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
+        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
+
+        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
+        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
+        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
+    ]
+    for clause in cnf:
+        if clause[0][0]:
+            result[int(clause[0][1][0])][int(clause[0][1][1])] = int(clause[0][1][3])
+            
+    return result
+
+def printSudoku(sudoku : list) -> None:
+    """prints a sudoku into the command-console in a readable way
+
+    Args:
+        sudoku list(list(int)) : is a list containing 9 lists (each row), which contain 9 integers (each field). If the integers is 0, the field is not set. Each field can be set with an integer from 1 to 9
+
+    Results:
+        None
+    """
+    tmp = ""
+    for row in range(0,9):
+        tmpList = sudoku[row].__str__()
+        tmpList = tmpList[0: 9] + "   " + tmpList[9: 18] + "   " + tmpList[18:]
+        tmp = tmp + tmpList + "\n"
+        if (row + 1) % 3 == 0:
+            tmp = tmp + "\n"
+
+    print(tmp[:-2])
+
+def __unitResolutionForSet__(cnf : list, units : set) -> list:
+    """makes unitresolution to given cnf for list of unitclauses and for the newly created ones
+
+    Args:
+        cnf list(list(tuple(bool, str))) : is a list of clauses
+        units set(tuple(bool, str)) : contains the unitclauses
+
+    Returns:
+        list(list(tuple(bool, str))): is the new cnf after resolution
+    """
+    
+    def makeUnitResolution(cnf : list, clauses : set) -> tuple: #returns tuple(list, set) with list as new cnf and set as new set of unit-clauses
+        tmpCnf = cnf.copy()
+        newUnitclauses = set()
+        for cl in cnf:
+            #if clause cl contains one of the unitclauses, remove clause
+            clSet = set(cl)
+            if len(clSet.intersection(clauses)) > 0:
+                tmpCnf.remove(cl)
+                continue
+            
+            #if clause contains one of the negated unit-clauses, update clause
+            tmpCl = cl.copy()
+            appendNewClause = False
+            for clause in clauses:
+                if (not clause[0], clause[1]) in cl:
+                    tmpCl.remove((not clause[0], clause[1]))
+                    appendNewClause = True
+            if appendNewClause:
+                tmpCnf.remove(cl)        
+                tmpCnf.append(tmpCl)
+                appendNewClause = False
+                
+                if len(tmpCl) == 1 and tmpCl[0] not in newUnitclauses:
+                    newUnitclauses.update({(tmpCl[0])})
+                
+                
+        #add unitclauses to cnf if neccesary
+        for clause in clauses:
+            if [clause] not in tmpCnf:
+                tmpCnf.append([clause])
+
+        return (tmpCnf, newUnitclauses)
+
+    #make resolution
+    newClauses = units
+    while len(newClauses) > 0:
+        res = makeUnitResolution(cnf, newClauses)
+        newClauses = res[1]
+        cnf = res[0].copy()
+
+    #remove duplicates
+    tmpCnf = list()
+    for cl in cnf:
+        if cl not in tmpCnf:
+            tmpCnf.append(cl.copy())
+    return tmpCnf
+  
+# a small cnf, which can be used to construct the full cnf for the solver in __createSudokuCnf__(is needed when sudokuGeneralCnf-Import failes)
+__generalCNF__ = [
     [(False, 'h'), (False, 'i')],
     [(False, 'g'), (False, 'i')],
     [(False, 'g'), (False, 'h')],
@@ -46,11 +255,11 @@ __generalKNF__ = [
     [(True, 'a'), (True, 'b'), (True, 'c'), (True, 'd'), (True, 'e'), (True, 'f'), (True, 'g'), (True, 'h'), (True, 'i')]
 ]
 
-def __createSudokuKnf__() -> list:
-    """creates the knf 
+def __createSudokuCnf__() -> list:
+    """creates a general cnf defining sudoku
 
         Returns:
-            list(list(tuple(bool, str))): is the knf of sudoku
+            list(list(tuple(bool, str))): is the constructed cnf
     """
     result = list()
     
@@ -69,7 +278,7 @@ def __createSudokuKnf__() -> list:
                 'i' : str(row) + str(col) + "-9",
             }
             tmpClause = list()
-            for clause in __generalKNF__:
+            for clause in __generalCNF__:
                 for literal in clause:
                     tmpClause.append((literal[0], renameDict[literal[1]]))
                 result.append(tmpClause)
@@ -90,7 +299,7 @@ def __createSudokuKnf__() -> list:
                 'i' : str(row) + "8-" + str(n),
             }
             tmpClause = list()
-            for clause in __generalKNF__:
+            for clause in __generalCNF__:
                 for literal in clause:
                     tmpClause.append((literal[0], renameDict[literal[1]]))
                 result.append(tmpClause)
@@ -111,7 +320,7 @@ def __createSudokuKnf__() -> list:
                 'i' : "8" + str(col) + "-" + str(n),
             }
             tmpClause = list()
-            for clause in __generalKNF__:
+            for clause in __generalCNF__:
                 for literal in clause:
                     tmpClause.append((literal[0], renameDict[literal[1]]))
                 result.append(tmpClause)
@@ -134,7 +343,7 @@ def __createSudokuKnf__() -> list:
     for block in blocks:
         for n in range(1, 10):
             tmpClause = list()
-            for clause in __generalKNF__:
+            for clause in __generalCNF__:
                 for literal in clause:
                     tmpClause.append((literal[0], block[literal[1]] + "-" + str(n)))
                 result.append(tmpClause)
@@ -147,208 +356,3 @@ def __createSudokuKnf__() -> list:
             tmp.append(clause)
     
     return tmp
-
-def __unitResolutionForSet__(knf : list, units : set) -> list:
-    """makes unitresolution to given knf for list of clauses and for the newly created ones
-
-    Args:
-        knf list(list(tuple(bool, str))) : is a list of clauses
-        units set(tuple(bool, str)) : are the unitclauses
-
-    Returns:
-        list(list(tuple(bool, str))): is the new knf after resolution
-    """
-    
-    def makeUnitResolution(knf : list, clauses : set) -> tuple: #returns tuple(list, set) with list as new knf and set as new set of unit-clauses
-        tmpKnf = knf.copy()
-        newUnitclauses = set()
-        for cl in knf:
-            clSet = set(cl)
-            if len(clSet.intersection(clauses)) > 0:
-                tmpKnf.remove(cl)
-                continue
-            
-            tmpCl = cl.copy()
-            appendNewClause = False
-            for clause in clauses:
-                if (not clause[0], clause[1]) in cl:
-                    tmpCl.remove((not clause[0], clause[1]))
-                    appendNewClause = True
-            
-            if appendNewClause:
-                tmpKnf.remove(cl)        
-                tmpKnf.append(tmpCl)
-                appendNewClause = False
-                
-                if len(tmpCl) == 1 and tmpCl[0] not in newUnitclauses:
-                    newUnitclauses.update({(tmpCl[0])})
-                
-                
-        #add unitclauses if neccesary
-        for clause in clauses:
-            if [clause] not in tmpKnf:
-                tmpKnf.append([clause])
-
-        return (tmpKnf, newUnitclauses)
-
-    newClauses = units
-    while len(newClauses) > 0:
-        res = makeUnitResolution(knf, newClauses)
-        newClauses = res[1]
-        knf = res[0].copy()
-
-    #remove duplicates
-    tmpKnf = list()
-    for cl in knf:
-        if cl not in tmpKnf:
-            tmpKnf.append(cl.copy())
-    return tmpKnf
-
-
-def solveSudoku(sudoku : list) -> list:
-    """solve sudoku with tree-like testing of possible states. Import of "sudokuGeneralKNF" speeds up algorithm by a bit (removes the need to construct a huge knf describing a sudoku-game)
-
-    Args:
-        sudoku list(list(int)) : is a 2-dimensional array containing a 9 lists with 9 intergers, representing the field. If an int is 0, it is not set 
-
-    Returns:
-        list(list(int)) : returns a solved sudoku game or an empty list (if its not solveable)
-    """
-
-    def isInSolvedState(knf : list) -> bool:
-        """checks if sudoku is solved. Knf with duplicates always gives False
-
-        Args:
-            knf list(list(tuple(bool, str))) : is given knf
-
-        Returns:
-            bool : is True if solved, and False if its not solved
-        """
-
-        if len(knf) == 729: #is number of all unitclauses possible in a solved state
-            #check if all of the contained clauses are unit-clauses
-            for cl in knf:
-                if len(cl) != 1:
-                    return False
-
-            #check if each field is only set once
-            onlyOneOfEachFieldSet = False
-            for row in range(0,9):
-                for col in range(0,9):
-                    for n in range(1, 10):
-                        if [(False, str(row) + str(col) + "-" + str(n))] not in knf and [(True, str(row) + str(col) + "-" + str(n))] not in knf:
-                            return False
-                        elif [(True, str(row) + str(col) + "-" + str(n))] in knf and onlyOneOfEachFieldSet:
-                            return False
-                        elif [(True, str(row) + str(col) + "-" + str(n))] in knf and not onlyOneOfEachFieldSet:
-                            onlyOneOfEachFieldSet = True
-                    if not onlyOneOfEachFieldSet:
-                        return False
-                    onlyOneOfEachFieldSet = False
-            
-            #since it derived from general sudoku-sat it must be true
-            return True 
-        else:
-            return False
-
-    def getUnallocatetField(knf : list) -> tuple:
-        """gets first unallocated field and returnas it with all possible numbers
-
-        Args:
-            knf list(list(tuple(bool, str))) : given knf
-
-        Results:
-            tuple(int, int, list(int)) : returns tuple containing row-index, collum-index and list of possible allocations or None if none was found
-        """
-        tmpResult = None
-
-        for row in range(0,9):
-            for col in range(0,9):
-                if [(True, str(row) + str(col) + "-1")] not in knf and [(True, str(row) + str(col) + "-2")] not in knf and [(True, str(row) + str(col) + "-3")] not in knf and [(True, str(row) + str(col) + "-4")] not in knf and [(True, str(row) + str(col) + "-5")] not in knf and [(True, str(row) + str(col) + "-6")] not in knf and [(True, str(row) + str(col) + "-7")] not in knf and [(True, str(row) + str(col) + "-8")] not in knf and [(True, str(row) + str(col) + "-9")] not in knf:
-                    tmpList = list()
-                    for n in range(1, 10):
-                        if [(False, str(row) + str(col) + "-" + str(n))] not in knf and n not in tmpList:
-                            tmpList.append(n)
-                    if len(tmpList) == 2:
-                        return (row, col, tmpList)
-                    elif tmpResult is not None and len(tmpList) < len(tmpResult[2]):
-                        tmpResult = (row, col, tmpList)
-                    elif tmpResult is None:
-                        tmpResult = (row, col, tmpList)
-
-        return tmpResult
-
-    #construct the knf
-    try:
-        knf = sudokuGeneral.copy()
-    except:
-        knf = __createSudokuKnf__()
-        
-    
-    #read in given sudoku
-    setOfUnitClauses = set()
-    for row in range(0,9):
-        for col in range(0,9):
-            if sudoku[row][col] != 0:
-                setOfUnitClauses.update({(True, str(row) + str(col) + "-" + str(sudoku[row][col]))})
-    knf = __unitResolutionForSet__(knf, setOfUnitClauses)
-                
-    #contains still untried clauses and old knf as tuples
-    stackAddableUnitClauses = list()
-
-    while not isInSolvedState(knf.copy()):
-        if [] in knf and len(stackAddableUnitClauses) == 0:
-            return []
-        elif [] in knf and len(stackAddableUnitClauses) > 0:
-            #check other configuration -> you made a wrong assumption
-
-            newClause = stackAddableUnitClauses.pop()
-            knf = __unitResolutionForSet__(newClause[1], {newClause[0]})
-        else:
-            #test further config
-            
-            #get non-set field
-            tmp = getUnallocatetField(knf)
-            #make stack and try out allocations
-            for unit in tmp[2][1:]:
-                stackAddableUnitClauses.append(((True, str(tmp[0]) + str(tmp[1]) + "-" + str(unit)), knf.copy()))
-            knf = __unitResolutionForSet__(knf, {(True, str(tmp[0]) + str(tmp[1]) + "-" + str(tmp[2][0]))})
-
-
-    #convert unit-clauses into list-structure and return it
-    result = [
-        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
-        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
-        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
-
-        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
-        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
-        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
-
-        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
-        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
-        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
-    ]
-    for clause in knf:
-        if clause[0][0]:
-            result[int(clause[0][1][0])][int(clause[0][1][1])] = int(clause[0][1][3])
-    return result
-
-def printSudoku(sudoku : list) -> None:
-    """prints a sudoku into the command-console
-
-    Args:
-        sudoku list(list(int)) : is a list containing 9 lists (each row), which contain 9 integers (each field). If the integers is 0, the field is not set. Each field can be set with an integer from 1 to 9
-
-    Results:
-        None
-    """
-    tmp = ""
-    for row in range(0,9):
-        tmpList = sudoku[row].__str__()
-        tmpList = tmpList[0: 9] + "   " + tmpList[9: 18] + "   " + tmpList[18:]
-        tmp = tmp + tmpList + "\n"
-        if (row + 1) % 3 == 0:
-            tmp = tmp + "\n"
-
-    print(tmp[:-2])

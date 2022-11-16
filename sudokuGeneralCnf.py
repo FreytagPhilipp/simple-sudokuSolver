@@ -1,3 +1,6 @@
+#import of this file into sudokuSolver.py allows sudokuSolver to start solving given sudoku immediately,
+#instead of needing to create this list beforehand
+
 sudokuGeneral = [
     [(False, '00-8'), (False, '00-9')],
     [(False, '00-7'), (False, '00-9')],
