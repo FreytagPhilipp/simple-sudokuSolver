@@ -47,7 +47,7 @@ def solveSudoku(sudoku : list) -> list:
                         return False
                     onlyOneOfEachFieldSet = False
             
-            #since it derived from general sudoku-cnf, it musat be a solved sudoku
+            #since it derived from general sudoku-cnf, it must be a solved sudoku
             return True 
         else:
             return False
