@@ -1,13 +1,11 @@
-import sudokuGeneralKNF
-from sudokuGeneralKNF import *
-
-import sudokus
-from sudokus import *
-
-import time
+try:
+    import sudokuGeneralCnf
+    from sudokuGeneralCnf import *
+except:
+    pass
 
 
-# a smaller knf, which can be used to construct the full knf for the solver
+# a smaller knf, which can be used to construct the full knf for the solver (is needed when sudokuGeneralCnf-Import failes)
 __generalKNF__ = [
     [(False, 'h'), (False, 'i')],
     [(False, 'g'), (False, 'i')],
@@ -48,6 +46,107 @@ __generalKNF__ = [
     [(True, 'a'), (True, 'b'), (True, 'c'), (True, 'd'), (True, 'e'), (True, 'f'), (True, 'g'), (True, 'h'), (True, 'i')]
 ]
 
+def __createSudokuKnf__() -> list:
+    """creates the knf 
+
+        Returns:
+            list(list(tuple(bool, str))): is the knf of sudoku
+    """
+    result = list()
+    
+    #each field can be set and needs to be set
+    for row in range(0,9):
+        for col in range(0,9):
+            renameDict = {
+                'a' : str(row) + str(col) + "-1",
+                'b' : str(row) + str(col) + "-2",
+                'c' : str(row) + str(col) + "-3",
+                'd' : str(row) + str(col) + "-4",
+                'e' : str(row) + str(col) + "-5",
+                'f' : str(row) + str(col) + "-6",
+                'g' : str(row) + str(col) + "-7",
+                'h' : str(row) + str(col) + "-8",
+                'i' : str(row) + str(col) + "-9",
+            }
+            tmpClause = list()
+            for clause in __generalKNF__:
+                for literal in clause:
+                    tmpClause.append((literal[0], renameDict[literal[1]]))
+                result.append(tmpClause)
+                tmpClause = list()
+                
+    #each row can only contain each number once
+    for row in range(0,9):
+        for n in range(1,10):
+            renameDict = {
+                'a' : str(row) + "0-" + str(n),
+                'b' : str(row) + "1-" + str(n),
+                'c' : str(row) + "2-" + str(n),
+                'd' : str(row) + "3-" + str(n),
+                'e' : str(row) + "4-" + str(n),
+                'f' : str(row) + "5-" + str(n),
+                'g' : str(row) + "6-" + str(n),
+                'h' : str(row) + "7-" + str(n),
+                'i' : str(row) + "8-" + str(n),
+            }
+            tmpClause = list()
+            for clause in __generalKNF__:
+                for literal in clause:
+                    tmpClause.append((literal[0], renameDict[literal[1]]))
+                result.append(tmpClause)
+                tmpClause = list()
+                
+    #each collum can only contain each number once
+    for col in range(0,9):
+        for n in range(1,10):
+            renameDict = {
+                'a' : "0" + str(col) + "-" + str(n),
+                'b' : "1" + str(col) + "-" + str(n),
+                'c' : "2" + str(col) + "-" + str(n),
+                'd' : "3" + str(col) + "-" + str(n),
+                'e' : "4" + str(col) + "-" + str(n),
+                'f' : "5" + str(col) + "-" + str(n),
+                'g' : "6" + str(col) + "-" + str(n),
+                'h' : "7" + str(col) + "-" + str(n),
+                'i' : "8" + str(col) + "-" + str(n),
+            }
+            tmpClause = list()
+            for clause in __generalKNF__:
+                for literal in clause:
+                    tmpClause.append((literal[0], renameDict[literal[1]]))
+                result.append(tmpClause)
+                tmpClause = list()
+    
+    #each block can only contain each number once
+    blocks = [
+        {'a': '00', 'b': '01', 'c': '02', 'd': '10', 'e': '11', 'f': '12', 'g': '20', 'h': '21', 'i': '22'},
+        {'a': '03', 'b': '04', 'c': '05', 'd': '13', 'e': '14', 'f': '15', 'g': '23', 'h': '24', 'i': '25'},
+        {'a': '06', 'b': '07', 'c': '08', 'd': '16', 'e': '17', 'f': '18', 'g': '26', 'h': '27', 'i': '28'},
+        
+        {'a': '30', 'b': '31', 'c': '32', 'd': '40', 'e': '41', 'f': '42', 'g': '50', 'h': '51', 'i': '52'},
+        {'a': '33', 'b': '34', 'c': '35', 'd': '43', 'e': '44', 'f': '45', 'g': '53', 'h': '54', 'i': '55'},
+        {'a': '36', 'b': '37', 'c': '38', 'd': '46', 'e': '47', 'f': '48', 'g': '56', 'h': '57', 'i': '58'},
+        
+        {'a': '60', 'b': '61', 'c': '62', 'd': '70', 'e': '71', 'f': '72', 'g': '80', 'h': '81', 'i': '82'},
+        {'a': '63', 'b': '64', 'c': '65', 'd': '73', 'e': '74', 'f': '75', 'g': '83', 'h': '84', 'i': '85'},
+        {'a': '66', 'b': '67', 'c': '68', 'd': '76', 'e': '77', 'f': '78', 'g': '86', 'h': '87', 'i': '88'}
+    ]
+    for block in blocks:
+        for n in range(1, 10):
+            tmpClause = list()
+            for clause in __generalKNF__:
+                for literal in clause:
+                    tmpClause.append((literal[0], block[literal[1]] + "-" + str(n)))
+                result.append(tmpClause)
+                tmpClause = list()
+    
+    #remove duplicates:
+    tmp = list()
+    for clause in result:
+        if clause not in tmp:
+            tmp.append(clause)
+    
+    return tmp
 
 def __unitResolutionForSet__(knf : list, units : set) -> list:
     """makes unitresolution to given knf for list of clauses and for the newly created ones
@@ -107,7 +206,7 @@ def __unitResolutionForSet__(knf : list, units : set) -> list:
 
 
 def solveSudoku(sudoku : list) -> list:
-    """solve sudoku with tree-like testing of possible states. Requires import of "sudokuGeneralKNF"
+    """solve sudoku with tree-like testing of possible states. Import of "sudokuGeneralKNF" speeds up algorithm by a bit (removes the need to construct a huge knf describing a sudoku-game)
 
     Args:
         sudoku list(list(int)) : is a 2-dimensional array containing a 9 lists with 9 intergers, representing the field. If an int is 0, it is not set 
@@ -179,8 +278,14 @@ def solveSudoku(sudoku : list) -> list:
 
         return tmpResult
 
-    #read in the sudoku-game and construct the knf
-    knf = sudokuGeneral.copy()
+    #construct the knf
+    try:
+        knf = sudokuGeneral.copy()
+    except:
+        knf = __createSudokuKnf__()
+        
+    
+    #read in given sudoku
     setOfUnitClauses = set()
     for row in range(0,9):
         for col in range(0,9):
@@ -212,17 +317,17 @@ def solveSudoku(sudoku : list) -> list:
 
     #convert unit-clauses into list-structure and return it
     result = [
-        [0, 0, 0,   0, 0, 0,    0, 0, 0],
-        [0, 0, 0,   0, 0, 0,    0, 0, 0],
-        [0, 0, 0,   0, 0, 0,    0, 0, 0],
+        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
+        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
+        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
 
-        [0, 0, 0,   0, 0, 0,    0, 0, 0],
-        [0, 0, 0,   0, 0, 0,    0, 0, 0],
-        [0, 0, 0,   0, 0, 0,    0, 0, 0],
+        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
+        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
+        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
 
-        [0, 0, 0,   0, 0, 0,    0, 0, 0],
-        [0, 0, 0,   0, 0, 0,    0, 0, 0],
-        [0, 0, 0,   0, 0, 0,    0, 0, 0]
+        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
+        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
+        [0, 0, 0,    0, 0, 0,    0, 0, 0 ],
     ]
     for clause in knf:
         if clause[0][0]:
@@ -247,31 +352,3 @@ def printSudoku(sudoku : list) -> None:
             tmp = tmp + "\n"
 
     print(tmp[:-2])
-    
-    
-    
-    
-    
-tmp = [
-    [0, 0, 5,   3, 0, 0,    0, 0, 0],
-    [8, 0, 0,   0, 0, 0,    0, 2, 0],
-    [0, 7, 0,   0, 1, 0,    5, 0, 0],
-
-    [4, 0, 0,   0, 0, 5,    3, 0, 0],
-    [0, 1, 0,   0, 7, 0,    0, 0, 6],
-    [0, 0, 3,   2, 0, 0,    0, 8, 0],
-
-    [0, 6, 0,   5, 0, 0,    0, 0, 9],
-    [0, 0, 4,   0, 0, 0,    0, 3, 0],
-    [0, 0, 0,   0, 0, 9,    7, 0, 0]
-]
-tmp = sudoku2
-
-startTime = time.time()
-print("It needs to solve:")
-printSudoku(tmp)
-print("\n\n")
-tmp = solveSudoku(tmp)
-print("Its solution:")
-printSudoku(tmp)
-print("time in seconds: " + str(time.time() - startTime))
