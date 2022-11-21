@@ -146,6 +146,10 @@ def printSudoku(sudoku : list) -> None:
     Results:
         None
     """
+    if sudoku == []:
+        print("Sudoku was unsolveable")
+        return
+    
     tmp = ""
     for row in range(0,9):
         tmpList = sudoku[row].__str__()
